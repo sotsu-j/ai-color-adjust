@@ -1,29 +1,18 @@
-import http from 'http'
+import http from 'axios'
 
 const button = document.querySelector('#buttonGreet') as HTMLButtonElement
 button.onclick = () => {
     const csInterface = new CSInterface()
     const url = 'http://192.168.1.160/om2/api/reports/works/scanner'
 
-    http.get(url, response => {
-        var body = ''
-        response.setEncoding('utf8')
-
-        response.on('data', chunk => {
-            body += chunk
-        })
-
+    http.get(url).then(({data}) => {
         // リクエスト処理完了
-        response.on('end', () => {
-            const { result } = JSON.parse(body)
-
-            const name = result[0].album_name
-            csInterface.evalScript(`sayHello("${name}")`, (result: string) => {
-                console.log("reuslt", result)
-            })
+        const {result} = data
+        const name = result[0].album_name
+        csInterface.evalScript(`sayHello("${name}")`, (result: string) => {
+            console.log("reuslt", result)
         })
-
-    }).on('error', error => {
+    }).catch(error => {
         csInterface.evalScript(`sayHello("しっぱい")`, (result: string) => {
             console.log("reuslt", result)
         })
@@ -35,24 +24,13 @@ buttonAdj.onclick = () => {
     const csInterface = new CSInterface()
     const url = 'http://192.168.1.160/om2/api/ai/colorAdjust'
 
-    http.get(url, response => {
-        var body = ''
-        response.setEncoding('utf8')
-
-        response.on('data', chunk => {
-            body += chunk
+    http.get(url).then( ({data}) => {
+        const { result} = data
+        const { inputRangeStart, inputRangeEnd, inputRangeGamma } = result
+        csInterface.evalScript(`adjustLevels(${inputRangeStart}, ${inputRangeEnd}, ${inputRangeGamma})`, (result: string) => {
+            console.log("reuslt", result)
         })
-
-        // リクエスト処理完了
-        response.on('end', () => {
-            const { result } = JSON.parse(body)
-            const { inputRangeStart, inputRangeEnd, inputRangeGamma } = result
-            csInterface.evalScript(`adjustLevels(${inputRangeStart}, ${inputRangeEnd}, ${inputRangeGamma})`, (result: string) => {
-                console.log("reuslt", result)
-
-            })
-        })
-    }).on('error', error => {
+    }).catch(error => {
         csInterface.evalScript(`sayHello("しっぱい")`, (result: string) => {
             console.log("reuslt", result)
         })
